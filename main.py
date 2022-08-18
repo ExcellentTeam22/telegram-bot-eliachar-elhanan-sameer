@@ -1,5 +1,6 @@
 import requests
 from flask import Flask, Response, request
+import math
 
 app = Flask(__name__)
 
@@ -15,9 +16,7 @@ def sanity():
 
 @app.route('/message', methods=["POST"])
 def handle_message():
-    print("got message")
     chat_id = request.get_json()['message']['chat']['id']
-    print(request.get_json()['message']['text'])
     msg_from_usr = request.get_json()['message']['text'].split(' ')
     if msg_from_usr[0] == '/prime':
         handle_prime(msg_from_usr[1])
@@ -39,6 +38,23 @@ def handle_prime(num: int):
     else:
         res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
                            .format(TOKEN, chat_id, "not prime"))
+
+    return Response("success")
+
+
+@app.route('/sqrt', methods=["POST"])
+def handle_sqrt(num: str):
+    chat_id = request.get_json()['message']['chat']['id']
+    num = int(num)
+
+    root = math.sqrt(num)
+    if int(root + 0.5) ** 2 == num:
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id, "sqrt!"))
+    else:
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id, "Not sqrt!"))
+
     return Response("success")
 
 
