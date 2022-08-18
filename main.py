@@ -5,8 +5,10 @@ import math
 app = Flask(__name__)
 
 TOKEN = '5661110898:AAH9WEsgFUSx7bLKQBtIcs4lHuw6aEbTSw0'
-TELEGRAM_INIT_WEBHOOK_URL = "https://api.telegram.org/bot{}/setWebhook?url=https://3321-37-142-167-82.eu.ngrok.io/message".format(TOKEN)
+TELEGRAM_INIT_WEBHOOK_URL = "https://api.telegram.org/bot{}/setWebhook?url=https://f3f9-2-53-16-160.eu.ngrok.io/message".format(
+    TOKEN)
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
+
 
 
 @app.route('/sanity')
@@ -18,7 +20,7 @@ def sanity():
 def handle_message():
     chat_id = request.get_json()['message']['chat']['id']
     msg_from_usr = request.get_json()['message']['text'].split(' ')
-    command = msg_from_usr[0]
+     command = msg_from_usr[0]
     num = msg_from_usr[1]
     if command == '/prime':
         handle_prime(num)
@@ -26,6 +28,27 @@ def handle_message():
         handle_palindrome(num)
     elif command == '/sqrt':
         handle_sqrt(num)
+    elif command == '/factorial':
+        handle_factorial(num)
+
+    return Response("success")
+
+
+@app.route('/factorial', methods=["POST"])
+def handle_factorial(num: int):
+    chat_id = request.get_json()['message']['chat']['id']
+    num = int(num)
+    number = 1
+    counter = 2
+    while number < num:
+        number *= counter
+        counter += 1
+    if number == num & num != 1:
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id, f"factorial of {counter - 1}"))
+    else:
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id, "not factorial"))
 
     return Response("success")
 
@@ -91,4 +114,3 @@ def is_palindrome(num: str):
 
 if __name__ == '__main__':
     app.run(port=5002)
-
