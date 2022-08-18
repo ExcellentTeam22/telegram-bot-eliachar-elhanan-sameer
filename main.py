@@ -22,9 +22,26 @@ def sanity():
 def handle_message():
     print("got message")
     chat_id = request.get_json()['message']['chat']['id']
-    print(chat_id)
-    res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
-                       .format(TOKEN, chat_id, "Got it"))
+    # print(chat_id)
+    print(request.get_json()['message']['text'])
+    msg_from_usr = request.get_json()['message']['text'].split(' ')
+    if msg_from_usr[0] == '/prime':
+        # res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+        #                    .format(TOKEN, chat_id, "Got it"))
+
+        handle_prime(msg_from_usr[1])
+
+    return Response("success")
+
+
+@app.route('/prime', methods=["POST"])
+def handle_prime(num: int):
+    print("got prim")
+    chat_id = request.get_json()['message']['chat']['id']
+    if int(num) % 2 == 0:
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id, "Come on dude!"))
+
     return Response("success")
 
 
