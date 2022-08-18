@@ -24,8 +24,12 @@ def handle_message():
     chat_id = request.get_json()['message']['chat']['id']
     print(request.get_json()['message']['text'])
     msg_from_usr = request.get_json()['message']['text'].split(' ')
-    if msg_from_usr[0] == '/prime':
-        handle_prime(msg_from_usr[1])
+    command = msg_from_usr[0]
+    num = msg_from_usr[1]
+    if command == '/prime':
+        handle_prime(num)
+    elif command == '/palindrome':
+        handle_palindrome(num)
 
     return Response("success")
 
@@ -53,6 +57,24 @@ def is_prime(num: int):
         if (num % i) == 0:
             return False
     return True
+
+
+@app.route('/palindrome', methods=["POST"])
+def handle_palindrome(num: int):
+    print("got palindrome")
+    chat_id = request.get_json()['message']['chat']['id']
+    if is_palindrome(num):
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id, "palindrome"))
+    else:
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id, "not palindrome"))
+
+    return Response("success")
+
+
+def is_palindrome(num: str):
+    return num == num[::-1]
 
 
 if __name__ == '__main__':
