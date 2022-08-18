@@ -7,7 +7,7 @@ app = Flask(__name__)
 dict = {}
 popular = [0, 0]
 TOKEN = '5661110898:AAH9WEsgFUSx7bLKQBtIcs4lHuw6aEbTSw0'
-ADDRESS = 'https://ef4c-2a10-8012-f-7660-1017-bc90-e274-6ca1.eu.ngrok.io'
+ADDRESS = 'https://f3f9-2-53-16-160.eu.ngrok.io'
 TELEGRAM_INIT_WEBHOOK_URL = f"https://api.telegram.org/bot{TOKEN}/setWebhook?url={ADDRESS}/message"
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 
@@ -31,6 +31,8 @@ def handle_message():
                 handle_prime(num)
             elif command == '/palindrome':
                 handle_palindrome(num)
+            elif command == '/factorial':
+                handle_factorial(num)
             elif command == '/sqrt':
                 handle_sqrt(num)
         if command == '/popular':
@@ -147,18 +149,18 @@ def handle_palindrome(num: str):
 def is_palindrome(num: str):
     return num == num[::-1]
 
-
-@app.route('/popular', methods=["POST"])
-def handle_popular():
-    chat_id = request.get_json()['message']['chat']['id']
-    popular_num = 0
-    for key, value in my_dict_prime.items():
-        if value > popular_num:
-            popular_num = key
-
-    res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
-                       .format(TOKEN, chat_id, f"most popular number: {popular_num}"))
-    return Response("success")
+#
+# @app.route('/popular', methods=["POST"])
+# def handle_popular():
+#     chat_id = request.get_json()['message']['chat']['id']
+#     popular_num = 0
+#     for key, value in my_dict_prime.items():
+#         if value > popular_num:
+#             popular_num = key
+#
+#     res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+#                        .format(TOKEN, chat_id, f"most popular number: {popular_num}"))
+#     return Response("success")
 
 
 if __name__ == '__main__':
