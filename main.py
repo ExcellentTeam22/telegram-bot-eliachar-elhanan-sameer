@@ -3,12 +3,12 @@ from flask import Flask, Response, request
 import math
 
 app = Flask(__name__)
-
+dict = {}
+popular = [0, 0]
 TOKEN = '5661110898:AAH9WEsgFUSx7bLKQBtIcs4lHuw6aEbTSw0'
 TELEGRAM_INIT_WEBHOOK_URL = "https://api.telegram.org/bot{}/setWebhook?url=https://f3f9-2-53-16-160.eu.ngrok.io/message".format(
     TOKEN)
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
-
 
 
 @app.route('/sanity')
@@ -20,7 +20,7 @@ def sanity():
 def handle_message():
     chat_id = request.get_json()['message']['chat']['id']
     msg_from_usr = request.get_json()['message']['text'].split(' ')
-     command = msg_from_usr[0]
+    command = msg_from_usr[0]
     num = msg_from_usr[1]
     if command == '/prime':
         handle_prime(num)
@@ -30,6 +30,8 @@ def handle_message():
         handle_sqrt(num)
     elif command == '/factorial':
         handle_factorial(num)
+    elif command == '/popular':
+        handle_popular()
 
     return Response("success")
 
@@ -58,6 +60,7 @@ def handle_prime(num: int):
     print("got prim")
     chat_id = request.get_json()['message']['chat']['id']
     num = int(num)
+    update_popular(num)
     if num % 2 == 0:
         res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
                            .format(TOKEN, chat_id, "Come on dude, you know even numbers are not prime!"))
@@ -68,6 +71,22 @@ def handle_prime(num: int):
         res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
                            .format(TOKEN, chat_id, "not prime"))
 
+    return Response("success")
+
+
+@app.route('/popular', methods=["POST"])
+def handle_popular():
+    print("got ppoular")
+    chat_id = request.get_json()['message']['chat']['id']
+
+    if popular[1] != 0:
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id,
+                                   f"the popular number is {popular[0]} and it appeared {popular[1]} times "))
+    else:
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id,
+                                   f"there is no popular number yet"))
     return Response("success")
 
 
@@ -85,6 +104,16 @@ def handle_sqrt(num: str):
                            .format(TOKEN, chat_id, "Not sqrt!"))
 
     return Response("success")
+
+
+def update_popular(number):
+    if number in dict:
+        dict[number] += 1
+    else:
+        dict[number] = 1
+    if popular[1] < dict[number]:
+        popular[0] = number
+        popular[1] = dict[number]
 
 
 def is_prime(num: int):
