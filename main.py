@@ -22,13 +22,9 @@ def sanity():
 def handle_message():
     print("got message")
     chat_id = request.get_json()['message']['chat']['id']
-    # print(chat_id)
     print(request.get_json()['message']['text'])
     msg_from_usr = request.get_json()['message']['text'].split(' ')
     if msg_from_usr[0] == '/prime':
-        # res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
-        #                    .format(TOKEN, chat_id, "Got it"))
-
         handle_prime(msg_from_usr[1])
 
     return Response("success")
@@ -38,34 +34,27 @@ def handle_message():
 def handle_prime(num: int):
     print("got prim")
     chat_id = request.get_json()['message']['chat']['id']
-    if int(num) % 2 == 0:
+    num = int(num)
+    if num % 2 == 0:
         res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
-                           .format(TOKEN, chat_id, "Come on dude!"))
+                           .format(TOKEN, chat_id, "Come on dude, you know even numbers are not prime!"))
+    elif is_prime(num):
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id, "prime"))
+    else:
+        res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                           .format(TOKEN, chat_id, "not prime"))
 
     return Response("success")
 
+
+def is_prime(num: int):
+    for i in range(2, num):
+        if (num % i) == 0:
+            return False
+    return True
 
 
 if __name__ == '__main__':
     app.run(port=5002)
 
-
-
-
-
-
-
-# from flask import Flask
-# from flask_ngrok import run_with_ngrok
-#
-# app = Flask(__name__)
-# run_with_ngrok(app)
-
-#
-# @app.route("/")
-# def hello():
-#     return "Hello Geeks!! from Google Colab"
-#
-#
-# if __name__ == "__main__":
-#     app.run()
