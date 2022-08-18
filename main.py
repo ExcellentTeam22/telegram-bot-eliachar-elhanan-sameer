@@ -5,7 +5,7 @@ import math
 app = Flask(__name__)
 
 TOKEN = '5661110898:AAH9WEsgFUSx7bLKQBtIcs4lHuw6aEbTSw0'
-TELEGRAM_INIT_WEBHOOK_URL = "https://api.telegram.org/bot{}/setWebhook?url=https://7b52-82-80-173-170.eu.ngrok.io/message".format(TOKEN)
+TELEGRAM_INIT_WEBHOOK_URL = "https://api.telegram.org/bot{}/setWebhook?url=https://3321-37-142-167-82.eu.ngrok.io/message".format(TOKEN)
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 
 
@@ -24,6 +24,8 @@ def handle_message():
         handle_prime(num)
     elif command == '/palindrome':
         handle_palindrome(num)
+    elif command == '/sqrt':
+        handle_sqrt(num)
 
     return Response("success")
 
