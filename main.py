@@ -6,6 +6,7 @@ import datetime
 from location import Location
 
 app = Flask(__name__)
+app.config["DEBUG"] = True
 
 TOKEN = '5661110898:AAH9WEsgFUSx7bLKQBtIcs4lHuw6aEbTSw0'
 ADDRESS = 'https://3867-2a10-8012-f-7660-a445-1531-de61-7f9a.eu.ngrok.io'
@@ -28,7 +29,7 @@ def respond_message(prefix, current, flag=False):
     text = f"{prefix}: {current}"
     send_message(text)
     if flag:
-        text = "Enter your destination (country, city and street) seperated by space:"
+        text = "Enter your destination (street, city, country and region(IL/EU/US/AU)) seperated by space:"
         send_message(text)
 
 
