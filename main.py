@@ -48,7 +48,7 @@ def handle_input(*args, flag=True):
             # return redirect(url_for('destination'))
     else:
         err_msg = "Your answer is incorrect format\n" \
-                  "Please enter your country, city and street seperated by space"
+                  "Please enter your street, city, country and region(IL/EU/US/AU) seperated by space"
         send_message(err_msg)
 
 
