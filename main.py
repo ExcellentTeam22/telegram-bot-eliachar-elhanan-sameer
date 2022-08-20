@@ -4,6 +4,7 @@ import requests
 from flask import Flask, Response, request, redirect, url_for
 import datetime
 from location import Location
+from convert_to_coords import get_coords_lon_lat
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
@@ -21,7 +22,7 @@ def send_message(text):
 
 
 def get_message():
-    return request.get_json()['message']['text'].split()
+    return request.get_json()['message']['text'].split(' ')
 
 
 def respond_message(prefix, current, flag=False):
@@ -43,8 +44,10 @@ def handle_input(*args, flag=True):
         respond_message(args[1], location.city)
         respond_message(args[2], location.country)
         respond_message(args[3], location.region, flag=flag)
-        if flag:
-            requests.get(TELEGRAM_INIT_WEBHOOK_URL + 'destination')
+
+        return location
+        # if flag:
+        #     requests.get(TELEGRAM_INIT_WEBHOOK_URL + 'destination')
             # destination()
             # return redirect(url_for('destination'))
     else:
@@ -58,8 +61,15 @@ def start():
     print("start")
     # send_message("Enter your country, city and street seperated by space:")
     # time.sleep(1)
-    handle_input("Your src street is", "Your src city source is", "Yur src country is",
-                 "Your src region is:", flag=True)
+    src_location = handle_input("Your src street is", "Your src city source is", "Yur src country is",
+                                "Your src region is:", flag=True)
+    print(src_location)
+
+    lat, lon = get_coords_lon_lat(src_location)
+    src_location.add_coords(lat, lon)
+    print(src_location)
+
+    send_message(str(src_location))
 
     return Response("success")
 
@@ -76,3 +86,15 @@ def destination():
 
 if __name__ == '__main__':
     app.run(port=5002)
+
+
+# Agripas Jerusalem Israel IL
+# Ofira Jerusalem Israel IL
+# Shoham Jerusalem Israel IL
+# Dizengoff Tel Aviv Israel IL
+# Dizengoff Tel-Aviv Israel IL
+# arlozorov Tel-Aviv Israel IL
+# Crimee Paris France EU
+# shor eilat israel IL
+# tsahal haifa israel IL
+
