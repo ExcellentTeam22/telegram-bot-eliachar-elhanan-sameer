@@ -45,42 +45,25 @@ class WazeRouteCalculator(object):
     }
     COORD_MATCH = re.compile(r'^([-+]?)([\d]{1,2})(((\.)(\d+)(,)))(\s*)(([-+]?)([\d]{1,3})((\.)(\d+))?)$')
 
-    def __init__(self, address, region='IL', vehicle_type='', avoid_toll_roads=False, avoid_subscription_roads=False, avoid_ferries=False, log_lvl=None):
+    def __init__(self, start_address, end_address, region='IL', avoid_toll_roads=False, log_lvl=None):
         self.log = logging.getLogger(__name__)
         self.log.addHandler(logging.NullHandler())
         if log_lvl:
             self.log.warning("log_lvl is deprecated please check example.py ")
-        self.log.info("From: %s - to: %s", address)
+        self.log.info("From: %s - to: %s", start_address)
+        self.log.info("To: %s - to: %s", end_address)
         region = region.upper()
         if region == 'NA':  # North America
             region = 'US'
         self.region = region
-        self.vehicle_type = ''
-        if vehicle_type and vehicle_type in self.VEHICLE_TYPES:
-            self.vehicle_type = vehicle_type.upper()
         self.ROUTE_OPTIONS = {
             'AVOID_TRAILS': 't',
-            'AVOID_TOLL_ROADS': 't' if avoid_toll_roads else 'f',
-            'AVOID_FERRIES': 't' if avoid_ferries else 'f'
+            'AVOID_TOLL_ROADS': 't' if avoid_toll_roads else 'f'
         }
-        self.avoid_subscription_roads = avoid_subscription_roads
-        if self.already_coords(address):  # See if we have coordinates or address to resolve
-            self.start_coords = self.coords_string_parser(address)
-        else:
-            self.start_coords = self.address_to_coords(address)
+        self.start_coords = self.address_to_coords(start_address)
+        self.end_coords = self.address_to_coords(end_address)
         self.log.debug('Start coords: (%s, %s)', self.start_coords["lat"], self.start_coords["lon"])
-
-    def already_coords(self, address):
-        """test used to see if we have coordinates or address"""
-
-        m = re.search(self.COORD_MATCH, address)
-        return (m is not None)
-
-    def coords_string_parser(self, coords):
-        """Pareses the address string into coordinates to match address_to_coords return object"""
-
-        lat, lon = coords.split(',')
-        return {"lat": lat.strip(), "lon": lon.strip(), "bounds": {}}
+        self.log.debug('End coords: (%s, %s)', self.end_coords["lat"], self.end_coords["lon"])
 
     def address_to_coords(self, address):
         """Convert address to coordinates"""
@@ -89,7 +72,7 @@ class WazeRouteCalculator(object):
         get_cord = self.COORD_SERVERS[self.region]
         url_options = {
             "q": address,
-            "lang": "eng",
+            "lang": "hebrew",
             "origin": "livemap",
             "lat": base_coords["lat"],
             "lon": base_coords["lon"]
@@ -106,7 +89,7 @@ class WazeRouteCalculator(object):
                     bounds['left'], bounds['right'] = min(bounds['left'], bounds['right']), max(bounds['left'], bounds['right'])
                 else:
                     bounds = {}
-                return {"lat": lat, "lon": lon}
+                return {"lat": lat, "lon": lon, "bounds": bounds}
         raise WRCError("Cannot get coords for %s" % address)
 
     def get_route(self, npaths=1, time_delta=0):
@@ -121,16 +104,11 @@ class WazeRouteCalculator(object):
             "returnJSON": "true",
             "returnGeometries": "true",
             "returnInstructions": "true",
+            "subscription": "*",
             "timeout": 60000,
             "nPaths": npaths,
             "options": ','.join('%s:%s' % (opt, value) for (opt, value) in self.ROUTE_OPTIONS.items()),
         }
-        if self.vehicle_type:
-            url_options["vehicleType"] = self.vehicle_type
-        # Handle vignette system in Europe. Defaults to false (show all routes)
-        if self.avoid_subscription_roads is False:
-            url_options["subscription"] = "*"
-
         response = requests.get(self.WAZE_URL + routing_server, params=url_options, headers=self.HEADERS)
         response.encoding = 'utf-8'
         response_json = self._check_response(response)
@@ -148,3 +126,53 @@ class WazeRouteCalculator(object):
                 return response_obj
         else:
             raise WRCError("empty response")
+
+    @staticmethod
+    def _check_response(response):
+        """Check waze server response."""
+        if response.ok:
+            try:
+                return response.json()
+            except ValueError:
+                return None
+
+    def _add_up_route(self, results, real_time=True, stop_at_bounds=False):
+        """Calculate route time and distance."""
+
+        start_bounds = self.start_coords['bounds']
+        end_bounds = self.end_coords['bounds']
+
+        def between(target, min, max):
+            return target > min and target < max
+
+        time = 0
+        distance = 0
+        for segment in results:
+            if stop_at_bounds and segment.get('path'):
+                x = segment['path']['x']
+                y = segment['path']['y']
+                if (
+                    between(x, start_bounds.get('left', 0), start_bounds.get('right', 0)) or
+                    between(x, end_bounds.get('left', 0), end_bounds.get('right', 0))
+                ) and (
+                    between(y, start_bounds.get('bottom', 0), start_bounds.get('top', 0)) or
+                    between(y, end_bounds.get('bottom', 0), end_bounds.get('top', 0))
+                ):
+                    continue
+            if 'crossTime' in segment:
+                time += segment['crossTime' if real_time else 'crossTimeWithoutRealTime']
+            else:
+                time += segment['cross_time' if real_time else 'cross_time_without_real_time']
+            distance += segment['length']
+        route_time = time / 60.0
+        route_distance = distance / 1000.0
+        return route_time, route_distance
+
+    def calc_route_info(self, real_time=True, stop_at_bounds=False, time_delta=0):
+        """Calculate best route info."""
+
+        route = self.get_route(1, time_delta)
+        results = route['results' if 'results' in route else 'result']
+        route_time, route_distance = self._add_up_route(results, real_time=real_time, stop_at_bounds=stop_at_bounds)
+        self.log.info('Time %.2f minutes, distance %.2f km.', route_time, route_distance)
+        return route_time, route_distance

@@ -2,11 +2,12 @@ import requests
 from flask import Flask, Response, request
 import connect_to_moovit as cm
 import WazeRouteCalculator as w
+import find_time as f
 
 
 app = Flask(__name__)
 
-TOKEN = '5626802621:AAH7H4G6rSskt18t6eElROOcwX_nFc7XxW0'
+TOKEN = '5512613293:AAEvUcz-owhZgBqkGFQU8ZSJO32W8aZ4wO4'
 ADDRESS = 'https://247b-2a0d-6fc7-330-2de1-99d4-be06-2fac-69be.eu.ngrok.io'
 TELEGRAM_INIT_WEBHOOK_URL = f"https://api.telegram.org/bot{TOKEN}/setWebhook?url={ADDRESS}/message"
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
@@ -19,6 +20,7 @@ city = ""
 def handle_message():
     global stations
     global city
+    global my_list
     bus_line = 0
 
     print("got msg")
@@ -52,8 +54,15 @@ def handle_message():
                 res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
                                    .format(TOKEN, chat_id, f"{index}--{str}"))
                 my_list.append([str,city])
-        if command=="\estimatedTime":
-            print(1)
+
+
+        if command=="/estimatedTime":
+            time=f.calc_rout_path(my_list)
+            res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+                               .format(TOKEN, chat_id, f"the estimated time is : {time}"))
+
+
+
 
     return Response("success")
 
