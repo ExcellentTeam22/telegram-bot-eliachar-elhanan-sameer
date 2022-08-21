@@ -1,5 +1,3 @@
-
-
 class Location:
     def __init__(self, street, city, country, region='IL') -> None:
         self.street = street

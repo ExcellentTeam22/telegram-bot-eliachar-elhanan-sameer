@@ -1,67 +1,20 @@
-
 import waze_classes as waze
-# import WazeRouteCalculator
-from location import Location
 
 
-def get_coords_lon_lat(location: Location):
-    route = waze.WazeRouteCalculator(str(location), region=location.region)
-    dict_lat_lon = route.address_to_coords(str(location))
-    return dict_lat_lon['lat'], dict_lat_lon['lon']
+def get_coords_lon_lat(start_stop, end_stop):
+    route = waze.WazeRouteCalculator(str(start_stop[0] + ' ' + start_stop[1]),
+                                     str(end_stop[0] + ' ' + end_stop[1]))
+    answer = route.calc_route_info()
+    return answer
 
 
-def create_location(street, city, country, region):
-    return Location(street=street, city=city, country=country, region=region)
-
-
-def check(street, city, country, region):
-    location = create_location(street, city, country, region)
-    print(location)
-
-    lat, lon = get_coords_lon_lat(location)
-
-    location.add_coords(lat, lon)
-    print(location)
+def calc_rout_path(bus_stops):
+    time_and_distance = (0, 0)
+    for i in range(len(bus_stops) - 1):
+        time_and_distance += get_coords_lon_lat(bus_stops[i], bus_stops[i + 1])
+    return time_and_distance
 
 
 if __name__ == '__main__':
-
-    check(street='Agripas', city='Jerusalem', country='Israel', region='IL')
-    check(street='Ofira', city='Jerusalem', country='Israel', region='IL')
-    check(street='Shoham', city='Jerusalem', country='Israel', region='IL')
-    check(street='Dizengoff', city='Tel Aviv', country='Israel', region='IL')
-    check(street='Dizengoff', city='Tel-Aviv', country='Israel', region='IL')
-    check(street='Crimee', city='Paris', country='France', region='EU')
-
-
-    # get_coords_lon_lat(street='Agripas', city='Jerusalem', country='Israel', region='IL')
-    # get_coords_lon_lat(street='Ofira', city='Jerusalem', country='Israel', region='IL')
-    # get_coords_lon_lat(street='Shoham', city='Jerusalem', country='Israel', region='IL')
-    # get_coords_lon_lat(street='Dizengoff', city='Tel Aviv', country='Israel', region='IL')
-    # get_coords_lon_lat(street='Dizengoff', city='Tel-Aviv', country='Israel', region='IL')
-
-
-
-
-
-    # get_coords_lon_lat('Budapest, Hungary')
-    # get_coords_lon_lat('Paris, France')
-    # get_coords_lon_lat('Jerusalem, Israel')
-
-    # geolocator = Nominatim(user_agent="specify_your_app_name_here")
-    # location = geolocator.geocode("Agripas Jerusalem")
-    # print(location.address)
-    # print((location.latitude, location.longitude))
-
-    # gn = geocoders.Google()
-    # place, (lat, lng) = gn.geocode(city)
-    # print(place)
-    # print(lat)
-    # print(lng)
-    # from_address = country + ', ' + city + ', ' + street
-
-    # import logging
-    # import requests
-    # import re
-    # from geopy import geocoders
-    # from geopy.geocoders import Nominatim
+    get_coords_lon_lat(start_stop='בית ספר אלונים/הבנים' + ' ' + 'פרדס חנה כרכור',
+                       end_stop='דרך למרחב/המעלה' + ' ' + 'פרדס חנה כרכור')
