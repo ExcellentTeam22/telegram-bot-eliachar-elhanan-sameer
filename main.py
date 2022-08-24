@@ -7,7 +7,7 @@ import find_time as f
 
 app = Flask(__name__)
 
-TOKEN = '5512613293:AAEvUcz-owhZgBqkGFQU8ZSJO32W8aZ4wO4'
+TOKEN = '5641544389:AAGJ9Oz0fdH59ROJdffLNUCTQ2QxqMbmDGo'
 ADDRESS = 'https://247b-2a0d-6fc7-330-2de1-99d4-be06-2fac-69be.eu.ngrok.io'
 TELEGRAM_INIT_WEBHOOK_URL = f"https://api.telegram.org/bot{TOKEN}/setWebhook?url={ADDRESS}/message"
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
@@ -26,7 +26,7 @@ def handle_message():
     print("got msg")
     chat_id = request.get_json()['message']['chat']['id']
     if request.get_json()['message']['text']:
-        msg = request.get_json()['message']['text'].split(' ')
+        msg = request.get_json()['message']['text'].split(',')
         command = msg[0]
 
         if command == "/choseLine":
@@ -58,8 +58,9 @@ def handle_message():
 
         if command=="/estimatedTime":
             time=f.calc_rout_path(my_list)
+
             res = requests.get("https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
-                               .format(TOKEN, chat_id, f"the estimated time is : {time}"))
+                               .format(TOKEN, chat_id, f"the estimated time is : {round(time)}"))
 
 
 
